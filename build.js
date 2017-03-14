@@ -114,7 +114,14 @@ builder.targets = {
 		isFile: false,
 		prereqs: ["target/cjs", "target/all.amd.es5.js"]
 	},
+
+	"run": {
+		isFile: false,
+		prereqs: ["target/cjs"],
+		invoke: (ctx) => ctx.builder.node(['target/cjs/MQTTLogger.js'])
+	},
 	"restart": {
+		isFile: false,
 		prereqs: ["target/cjs"],
 		invoke: (ctx) => ctx.builder.doCmd("TZ=America/Chicago ./restart")
 	}
