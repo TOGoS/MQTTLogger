@@ -120,7 +120,7 @@ builder.targets = {
 	}
 }
 
-// If build.js has changed, assume everything else is out of date!
-builder.globalPrereqs = ['build.js', 'src/build/js/Builder.js'];
+// If build ystem has changed, assume everything else is out of date!
+builder.globalPrereqs = ['build.js', 'src/build'];
 
 builder.processCommandLineAndSetExitCode(process.argv.slice(2));
