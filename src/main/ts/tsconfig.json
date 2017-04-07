@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"target": "es5",
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
@@ -7,8 +8,5 @@
 		"strictNullChecks": true,
 		"rootDir": ".",
 		"moduleResolution": "node"
-	},
-	"exclude": [
-		"node_modules"
-	]
+	}
 }
