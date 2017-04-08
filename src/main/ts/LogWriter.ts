@@ -83,7 +83,7 @@ export default class LogWriter {
 		this._maxTs = new Date(ts.getTime() + this.maxDrift);
 	}
 	
-	public message( m:LogMessage ):void {
+	public message( m:LogMessage ):string {
 		let ts = m.explicitTime || m.receivedTime;
 
 		// Use receivedTimes so that in case there's multiple writers,
@@ -102,7 +102,7 @@ export default class LogWriter {
 			clamped = true;
 		}
 		
-		let line = (m.explicitTime == undefined ? dateToIso8601(ts) + " " : "") + m.text;
+		const line = (m.explicitTime == undefined ? dateToIso8601(ts) + " " : "") + m.text;
 		const topicStreamInfo = this.topicStreamInfo(m.topic, ts);
 		topicStreamInfo.streamPromise.then( (writeStream) => {
 			if( clamped ) {
@@ -110,6 +110,8 @@ export default class LogWriter {
 			}
 			writeStream.write(line+"\n");
 		});
+
+		return line;
 	}
 
 	public closeOldStreams() {
