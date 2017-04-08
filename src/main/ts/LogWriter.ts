@@ -132,7 +132,7 @@ export default class LogWriter {
 			}
 		}
 	}
-	
+
 	public startAutoCleanup() {
 		setInterval( this.closeOldStreams.bind(this), 1000 * 60 );
 	}
