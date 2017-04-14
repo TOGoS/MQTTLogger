@@ -8,6 +8,10 @@ const dateRegex = /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:Z|[+-]\d\d(?::\d\d))$/;
 export default class MQTTLogger extends events.EventEmitter {
 	protected client : mqtt.Client;
 	protected logWriter = new LogWriter();
+	public serverUrl:string;
+	public topicNames:string[];
+	
+	
 	public onLine:(topic:string, loggedLine:string)=>void = ()=>{};
 	
 	public constructor() {
@@ -16,14 +20,15 @@ export default class MQTTLogger extends events.EventEmitter {
 	
 	public start() {
 		return new Promise<void>( (resolve,reject) => {
-			const serverUrl = "mqtt://togos-pi6.nuke24.net";
-			console.log("# Attempting to connect to "+serverUrl+"...")
-			this.client = mqtt.connect(serverUrl);
+			console.log("# Attempting to connect to "+this.serverUrl+"...")
+			this.client = mqtt.connect(this.serverUrl);
+			this.client.on('error', reject);
 			this.client.on('connect', () => {
+				console.log("# Connected to "+this.serverUrl);
 				resolve();
 			});
 			
-			this.client.subscribe('device-chat');
+			for( let t in this.topicNames ) this.client.subscribe(this.topicNames[t]);
 			this.client.on('message', (topic:string,data:Buffer) => {
 				const text = data.toString();
 				const tokens = text.split(/\s+/);
@@ -42,7 +47,6 @@ export default class MQTTLogger extends events.EventEmitter {
 				})
 				this.emit('line', topic, line);
 			});
-			this.client.on('error', reject);
 		});
 	}
 }
@@ -50,13 +54,19 @@ export default class MQTTLogger extends events.EventEmitter {
 if( typeof module != 'undefined' && typeof require != 'undefined' && module == require.main ) {
 	let logMessagesToConsole = false; 
 
+	let serverUrl = 'mqtt://undefined-mqtt-server';
+	let topicNames = [];
 	const argv = process.argv;
 	for( let i=2; i<argv.length; ++i ) {
 		if( argv[i] == '-v' ) {
 			logMessagesToConsole = true;
-		} else if( argv[i] == '-?' || argv[i] == '-h' || argv[i] == '--help' ) {
+		} else if( argv[i] == '-?' || argv[i] == '--help' ) {
 			console.log("Usage: "+argv[1]+" [-v]");
 			process.exit(0);
+		} else if( argv[i] == '-h' ) {
+			serverUrl = "mqtt://"+argv[++i];
+		} else if( argv[i] == '-t' ) {
+			topicNames.push(argv[++i]);
 		} else {
 			console.error(argv[1]+": Error: Unrecognized argument '"+argv[i]+"'");
 			console.error(argv[1]+": Say -? for help");
@@ -65,6 +75,8 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && module == r
 	}
 
 	const logger = new MQTTLogger();
+	logger.serverUrl = serverUrl;
+	logger.topicNames = topicNames;
 	const startPromise = logger.start();
 	startPromise.catch( (err) => {
 		console.error(err);
