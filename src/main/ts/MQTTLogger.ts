@@ -10,10 +10,7 @@ export default class MQTTLogger extends events.EventEmitter {
 	protected logWriter = new LogWriter();
 	public serverUrl:string;
 	public topicNames:string[];
-	
-	
-	public onLine:(topic:string, loggedLine:string)=>void = ()=>{};
-	
+		
 	public constructor() {
 		super();
 	}
