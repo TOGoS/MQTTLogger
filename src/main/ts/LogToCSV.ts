@@ -83,6 +83,9 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && require.mai
 			process.exit(1);
 		} else if( arg[0] != '-' || arg == '-' ) {
 			inputFilenames.push(arg);
+		} else {
+			console.error("Unrecognized argument: '"+arg+"'");
+			process.exit(1);
 		}
 	}
 	if( minValueCount == undefined ) {
