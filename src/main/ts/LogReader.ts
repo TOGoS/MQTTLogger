@@ -1,9 +1,13 @@
+///<reference types="node"/>
+
 interface LSCRecord {
 	text : string;
 	values : {[k:string]: string};
 	comment? : string;
 };
 
+import * as readline from 'readline';
+import * as fs from 'fs';
 import * as fsu from './FSUtil';
 const dateRegex = /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:Z|[+-]\d\d(?::\d\d))$/;
 
@@ -47,15 +51,42 @@ export default class LogReader {
 		})
 	}
 
-	protected processLines( lines:string[], callback:(m:LSCRecord)=>Promise<void>, filename:string="?", lineNumber:number ) {
+	protected processLines( lines:string[], callback:(m:LSCRecord)=>Promise<void>, filename:string="?", lineNumber:number=1 ) {
 		return this._processLines(lines, 0, callback, filename, lineNumber);
 	}
-
-	public processFile( filepath:string, callback:(m:LSCRecord)=>Promise<void> ):Promise<void> {
-		return fsu.readFile(filepath, {encoding:"utf-8"}).then( (content:string) => {
-			const lines = content.split("\n");
-			return this.processLines(lines, callback, filepath, 1);
+	
+	public processStream( stream:NodeJS.ReadableStream, callback:(m:LSCRecord)=>Promise<void>, filename:string="?", lineNumber:number=1 ):Promise<void> {
+		return new Promise<void>( (resolve,reject) => {
+			const rl = readline.createInterface({
+				input: stream,
+				terminal: false
+			});
+			stream.on('error', reject);
+			rl.on('line', (line) => {
+				 this.processLine(line, callback, filename, lineNumber);
+				 ++lineNumber;
+			})
+			rl.on('close', resolve);
 		});
+	}
+	
+	public processFile( filepath:string, callback:(m:LSCRecord)=>Promise<void> ):Promise<void> {
+		return fsu.stat(filepath).then( (stat:fs.Stats) => {
+			if( stat.isDirectory() ) {
+				return fsu.readDir(filepath).then( entries => {
+					let prom = Promise.resolve();
+					for( let e in entries ) {
+						prom = prom.then( () => {
+							return this.processFile(filepath+"/"+entries[e], callback);
+						});
+					}
+					return prom;
+				});
+			} else {
+				const stream = fs.createReadStream(filepath, {encoding:"utf-8"});
+				return this.processStream(stream, callback, filepath);
+			}
+		})
 	}
 
 	public static instance = new LogReader;

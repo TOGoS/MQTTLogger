@@ -41,25 +41,17 @@ export default class LogToCSV {
 		if( valueCount < this.minRecordSize ) return true;
 		return this.outStream.write(encoded.join(",")+"\n");
 	}
+	public processLogStream( stream:NodeJS.ReadableStream ):Promise<void> {
+		return LogReader.instance.processStream(stream, (rec) => {
+			this.writeRecord(rec.values);
+			return Promise.resolve();
+		}, "-");
+	}
 	public processLogFile( filename:string ):Promise<void> {
-		return fsu.stat(filename).then( (stat) => {
-			if( stat.isDirectory() ) {
-				return fsu.readDir(filename).then( (entries) => {
-					entries.sort();
-					let prom = Promise.resolve();
-					for( let e in entries ) {
-						const subfile = filename+"/"+entries[e];
-						prom = prom.then( () => this.processLogFile(subfile) );
-					}
-					return prom;
-				});
-			} else {
-				return LogReader.instance.processFile(filename, (rec) => {
-					this.writeRecord(rec.values);
-					return Promise.resolve();
-				});
-			}
-		})
+		return LogReader.instance.processFile(filename, (rec) => {
+			this.writeRecord(rec.values);
+			return Promise.resolve();
+		});
 	}
 }
 
@@ -113,7 +105,13 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && require.mai
 	let prom = Promise.resolve();
 	for( let f in inputFilenames ) {
 		const fn = inputFilenames[f];
-		prom = prom.then( () => converter.processLogFile(fn) );
+		prom = prom.then( () => {
+			if( fn == '-' ) {
+				return converter.processLogStream(process.stdin);
+			} else {
+				return converter.processLogFile(fn);
+			}
+		});
 	}
 	prom.then( () => {
 		if( columnNames.length == 0 ) {
