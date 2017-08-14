@@ -58,7 +58,7 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && module == r
 		if( argv[i] == '-v' ) {
 			logMessagesToConsole = true;
 		} else if( argv[i] == '-?' || argv[i] == '--help' ) {
-			console.log("Usage: "+argv[1]+" [-v]");
+			console.log("Usage: "+argv[1]+" -h <host> {-t <topic>}*");
 			process.exit(0);
 		} else if( argv[i] == '-h' ) {
 			serverUrl = "mqtt://"+argv[++i];
