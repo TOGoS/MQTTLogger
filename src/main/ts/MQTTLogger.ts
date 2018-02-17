@@ -2,6 +2,7 @@
 import * as mqtt from 'mqtt';
 import LogWriter from './LogWriter';
 import * as events from 'events';
+import MQTTURLOption from './MQTTURLOption';
 
 const dateRegex = /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(?:Z|[+-]\d\d(?::\d\d))$/;
 
@@ -51,8 +52,8 @@ export default class MQTTLogger extends events.EventEmitter {
 if( typeof module != 'undefined' && typeof require != 'undefined' && module == require.main ) {
 	let logMessagesToConsole = false; 
 
-	let serverUrl = 'mqtt://undefined-mqtt-server';
-	let topicNames = [];
+	let serverOpt:MQTTURLOption = new MQTTURLOption();
+	let topicNames:string[] = [];
 	const argv = process.argv;
 	for( let i=2; i<argv.length; ++i ) {
 		if( argv[i] == '-v' ) {
@@ -61,7 +62,9 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && module == r
 			console.log("Usage: "+argv[1]+" [-v]");
 			process.exit(0);
 		} else if( argv[i] == '-h' ) {
-			serverUrl = "mqtt://"+argv[++i];
+			serverOpt.setHost(argv[++i]);
+		} else if( argv[i] == '-p' ) {
+			serverOpt.setPort(argv[++i]);
 		} else if( argv[i] == '-t' ) {
 			topicNames.push(argv[++i]);
 		} else {
@@ -72,7 +75,7 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && module == r
 	}
 
 	const logger = new MQTTLogger();
-	logger.serverUrl = serverUrl;
+	logger.serverUrl = serverOpt.getUrl();
 	logger.topicNames = topicNames;
 	const startPromise = logger.start();
 	startPromise.catch( (err) => {
