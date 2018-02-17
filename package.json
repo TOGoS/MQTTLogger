@@ -8,7 +8,6 @@
     "test": "make run-unit-tests"
   },
   "dependencies": {
-    "csv-stringify": "^1.0.4",
     "mqtt": "^2.4.0",
     "tshash": "^1.7.0"
   },
