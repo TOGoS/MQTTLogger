@@ -20,7 +20,7 @@ export default class LogToCSV {
 		for( let i=0; i<cols.length; ++i ) {
 			const colName = cols[i];
 			const title = this.columnTitles[colName] || colName;
-			encoded.push(title);
+			encoded.push(csvEncode(title));
 		}
 		return this.outStream.write(encoded.join(",")+"\n");
 	}
@@ -35,7 +35,7 @@ export default class LogToCSV {
 			const colName = cols[i];
 			const v = ""+(values[colName] || "");
 			if( v != "" ) ++valueCount;
-			encoded.push(v);
+			encoded.push(csvEncode(v));
 		}
 		if( valueCount < this.minRecordSize ) return true;
 		return this.outStream.write(encoded.join(",")+"\n");
