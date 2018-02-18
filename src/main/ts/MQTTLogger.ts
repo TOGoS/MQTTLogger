@@ -11,7 +11,7 @@ export default class MQTTLogger extends events.EventEmitter {
 	protected logWriter = new LogWriter();
 	public serverUrl:string;
 	public topicNames:string[];
-		
+	
 	public constructor() {
 		super();
 	}
@@ -42,7 +42,7 @@ export default class MQTTLogger extends events.EventEmitter {
 					receivedTime: new Date(),
 					topic,
 					explicitTime,
-				})
+				});
 				this.emit('line', topic, line);
 			});
 		});

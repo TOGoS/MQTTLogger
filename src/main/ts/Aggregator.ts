@@ -2,13 +2,15 @@ type AggregationResult = {[k:string]: number};
 
 type AggregationResultCallback = (res:AggregationResult)=>any;
 
+type Timer = any;
+
 /**
  * Periodically reports average values for a set of channels.
  * Transport independent -- needs to be fed values explicitly.
  * Can run automatically on a timer (start())
  * Or explicitly step()'d
  */
-class Aggregator {
+export default class Aggregator {
 	// TODO: Could just mind how long the last value's been sitting
 	// there every time setValue is called
 	// and continuously update averages that way
@@ -18,9 +20,9 @@ class Aggregator {
 
 	public constructor(
 		protected watchKeys:string[],
-		protected stepInterval:number,
-		protected stepsPerReport:number,
-		protected callback:AggregationResultCallback
+		protected reportInterval:number,
+		protected callback:AggregationResultCallback,
+		protected stepsPerReport:number = 100
 	) {
 	}
 
@@ -63,15 +65,15 @@ class Aggregator {
 		}
 	}
 
-	protected intervalId:number|undefined;
+	protected intervalId:Timer|undefined;
 	public start():void {
 		if( this.intervalId != undefined ) throw new Error("Aggregator already started; intervalId = "+this.intervalId);
-		this.intervalId = setInterval(this.step.bind(this), this.stepInterval);
+		this.intervalId = setInterval(this.step.bind(this), this.reportInterval / this.stepsPerReport);
 	}
 
 	public stop():void {
 		if( this.intervalId == undefined ) return;
-		clearInterval(<any>this.intervalId);
+		clearInterval(this.intervalId);
 		this.intervalId = undefined;
 	}
 }
