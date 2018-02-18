@@ -15,7 +15,7 @@ export function stat( file:FilePath ):Promise<fs.Stats> {
 	});
 }
 
-export function readFile( file:FilePath, options:string|{encoding?:string, flag?:string}={} ):Promise<Buffer|string> {
+export function readFile( file:FilePath, options:{encoding?:string, flag?:string}={} ):Promise<Buffer|string> {
 	return new Promise( (resolve,reject) => {
 		fs.readFile(file, options, (err,content) => {
 			if( err ) reject(err);
@@ -33,7 +33,7 @@ export function writeFile( file:FilePath, data:string|Uint8Array ):Promise<FileP
 	});
 }
 
-export function readFileToUint8Array( file:FilePath, options:string|{encoding?:string, flag?:string}={} ):Promise<Uint8Array> {
+export function readFileToUint8Array( file:FilePath, options:{encoding?:string, flag?:string}={} ):Promise<Uint8Array> {
 	return readFile(file,options).then( (content) => {
 		if( typeof content == 'string' ) return Promise.reject(new Error("File read as a string!"));
 		// Supposedly Buffer acts as a Uint8Array, so we can just return it.
