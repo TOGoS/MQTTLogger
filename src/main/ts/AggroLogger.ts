@@ -107,7 +107,7 @@ function generateCsvChunkFormat(colNames:string[], headers=false) {
 	format.push(headers ? literalExpression("date") : variableExpression("date:iso8601"));
 	for( let d in colNames ) {
 		format.push(literalExpression(","));
-		format.push((headers ? literalExpression : variableExpression)(devNames[d]));
+		format.push((headers ? literalExpression : variableExpression)(colNames[d]));
 	}
 	format.push(literalExpression("\n"));
 	return concatenationExpression(format);
