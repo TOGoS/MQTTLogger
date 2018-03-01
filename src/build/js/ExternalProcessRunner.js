@@ -1,9 +1,13 @@
 "use strict";
+// This file is maintained as part of NodeBuildUtil: https://github.com/TOGoS/NodeBuildUtil
+// If you're making fixes and want to make sure they get merged upstream,
+// PR to that project.
+// Otherwise, feel free to remove this comment.
 Object.defineProperty(exports, "__esModule", { value: true });
 var Logger_1 = require("./Logger");
 var child_process = require("child_process");
 var fs = require("fs");
-var ExternalProcessRunner = (function () {
+var ExternalProcessRunner = /** @class */ (function () {
     function ExternalProcessRunner() {
         this.logger = Logger_1.NULL_LOGGER;
         this.shellCommandPromise = undefined;
@@ -85,7 +89,7 @@ var ExternalProcessRunner = (function () {
             ['cmd.exe', '/c'],
             ['sh', '-c'],
         ];
-        return this.shellCommandPromise = this.findWorkingProgram(alternatives, ['exit 0']);
+        return this.shellCommandPromise = this.findWorkingProgram(alternatives, ['exit 0'], 0, 'shell');
     };
     ExternalProcessRunner.prototype.figureNpmCommand = function () {
         var _this = this;
@@ -103,22 +107,23 @@ var ExternalProcessRunner = (function () {
         var envPath = process.env.Path;
         var envPaths = (envPath != '' && envPath != undefined) ? envPath.split(';') : [];
         var leftToCheck = envPaths.length;
-        var findNpmCliJsPromise = Promise.resolve();
-        leftToCheck == 0 ? Promise.resolve() : new Promise(function (resolve, reject) {
+        var potentialNpmCommandsPromise = leftToCheck == 0 ? Promise.resolve(alternatives) : new Promise(function (resolve, reject) {
             var _loop_1 = function (p) {
                 var npmCliJsPath = envPaths[p] + '/node_modules/npm/bin/npm-cli.js';
                 fs.stat(npmCliJsPath, function (err, stats) {
                     if (!err)
                         alternatives.push(['node', npmCliJsPath]);
                     if (--leftToCheck == 0)
-                        resolve();
+                        resolve(alternatives);
                 });
             };
             for (var p in envPaths) {
                 _loop_1(p);
             }
         });
-        return this.npmCommandPromise = findNpmCliJsPromise.then(function () { return _this.findWorkingProgram(alternatives, ['-v']); });
+        return this.npmCommandPromise = potentialNpmCommandsPromise.then(function (_alternatives) {
+            return _this.findWorkingProgram(alternatives, ['-v'], 0, 'npm');
+        });
     };
     ExternalProcessRunner.prototype.figureNodeCommand = function () {
         return Promise.resolve(['node']);
