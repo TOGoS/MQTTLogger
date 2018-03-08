@@ -122,7 +122,7 @@ if( typeof module != 'undefined' && typeof require != 'undefined' && module == r
 	mqttClient.on('connect', () => {
 		console.error("# Connected to "+mqttHost);
 	});
-	mqttClient.on('error', (error) => {
+	mqttClient.on('error', (error:Error) => {
 		console.error("# MQTT client error: "+error.stack);
 	});
 	if( config.sensors.length == 0 ) {
